@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pre-Experiment Background Survey</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            width: 100%; 
+            height: 100%; 
+            background-color: #F7F9F9; 
+        }
+        .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const IconGlobe = ({ className = "w-3.5 h-3.5" }) => (
+          <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        );
+        const IconChevronRight = ({ className = "w-4 h-4" }) => (
+          <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        );
+        const IconCheckCircle = ({ className = "w-8 h-8" }) => (
+          <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        );
+        const IconLoader = ({ className = "w-4 h-4 animate-spin" }) => (
+          <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
+        );
+
+        const TRANSLATIONS = {
+          en: {
+            switchLang: "中文",
+            // Consent
+            consentTitle: "Study Information",
+            consentP1: "Thank you for participating in this study. We are researchers from Tsinghua University, University of the Arts London, and City University of Hong Kong.",
+            consentP2: "This study aims to understand how people evaluate **health, science, and technology information** encountered on social media, and how AI-assisted fact-checking influences judgments of information accuracy and credibility. During the study, you will read a series of online posts and corresponding AI fact-checking responses, and answer questions based on your own judgments and impressions. There are no right or wrong answers; please respond according to your genuine thoughts and first impressions.",
+            consentP3: "We place a high priority on your privacy and data security. All research data will be processed and analyzed anonymously and used solely for academic research purposes. Findings will be reported only in aggregate form, and no personally identifiable information will be publicly disclosed.",
+            consentP4: "If you have any questions about the study, please contact the research team at:\ngengchencao@gmail.com",
+            consentP5: "I have read and understood the information provided about this study and agree to participate. I consent to the research team collecting and using my responses for research purposes. If you agree with the statements above, please click \"Yes\" to continue.",
+            btnYes: "Yes",
+            
+            // Login
+            loginTitle: "Participant Login",
+            loginPrompt: "Please indicate your ID (A/B/C + number)",
+            loginError: "Invalid ID format. Must be A, B, or C followed by a number (e.g., A01).",
+            btnLogin: "Login",
+
+            // Survey Titles
+            surveyMainTitle: "PART 1 — Pre-Experiment Background Survey",
+            secA: "A. Demographics",
+            secB: "B. Social Media Use",
+            secC: "C. AI Use and Credibility Perceptions",
+            secD: "D. Domain Knowledge",
+
+            // Questions
+            q1_text: "Q1. What is your age?",
+            q1_opts: ["18–24", "25–34", "35–44", "45–54", "55–64", "65 or older"],
+            
+            q2_text: "Q2. What is your gender?",
+            q2_opts: ["Man", "Woman", "Non-binary / gender diverse", "Prefer not to say"],
+
+            q3_text: "Q3. Which of the following best describes your primary occupation field?",
+            q3_opts: ["Healthcare / Medicine", "Science / Engineering / Technology", "Education / Academia", "Business / Finance / Law", "Arts / Media / Humanities", "Other"],
+
+            q4_text: "Q4. On average, how many hours per day do you spend on social media?",
+            q4_opts: ["Less than 30 minutes", "30 min – 1 hour", "1 – 2 hours", "2 – 4 hours", "More than 4 hours"],
+
+            q5_text: "Q5. When you encounter information on social media, how often do you actively try to verify its accuracy?",
+            q5_anchors: ["1 = Never", "7 = Always"],
+
+            q6_text: "Q6. How would you describe your overall experience with AI tools (e.g., ChatGPT, Claude, Gemini, Copilot)?",
+            q6_anchors: ["1 = No experience at all", "7 = Very extensive experience"],
+
+            q7_text: "Q7. Have you ever used an AI tool specifically to check whether a piece of information or news was accurate?",
+            q7_opts: ["Yes", "No"],
+
+            q7a_text: "Q7a. In general, I trust the accuracy of information provided by AI.",
+            q7a_anchors: ["1 = Strongly Disagree", "7 = Strongly Agree"],
+
+            q8_text: "Q8. How knowledgeable do you consider yourself about health and medicine topics?",
+            q8_anchors: ["1 = No knowledge at all", "7 = Expert-level knowledge"],
+
+            q9_text: "Q9. How knowledgeable do you consider yourself about science and technology topics?",
+            q9_anchors: ["1 = No knowledge at all", "7 = Expert-level knowledge"],
+
+            btnSubmit: "Submit Survey",
+            
+            // Completed
+            completedTitle: "Thank you for answering!",
+            completedText: "Your background survey has been successfully submitted. You may now close this page and proceed to the main experiment link."
+          },
+          zh: {
+            switchLang: "English",
+            // Consent
+            consentTitle: "研究说明",
+            consentP1: "感谢您参与本研究。我们是来自清华大学、伦敦艺术大学和香港城市大学的研究人员。",
+            consentP2: "本研究旨在了解公众如何评估社交媒体中的健康与科学类信息，以及 AI 辅助事实核查如何影响人们对信息真实性与可信度的判断。在后续的实验过程中，您将阅读一系列网络信息及相应的 AI 核查回复，并根据自己的真实判断和感受回答相关问题。问卷没有标准答案，请根据您的第一反应作答。",
+            consentP3: "我们高度重视您的隐私与数据安全。所有研究数据均将以匿名方式进行处理和分析，仅用于学术研究目的。研究结果将以汇总形式呈现，任何能够识别您个人身份的信息均不会被公开披露。",
+            consentP4: "如对本研究有任何疑问，请联系研究团队成员：\ngengchencao@gmail.com",
+            consentP5: "感谢您参与本问卷，您的参与即表示同意。我已同意并理解本研究的信息，并且同意研究成员收集我的回答 （如果您同意继续，请点击“是”继续）",
+            btnYes: "是",
+            
+            // Login
+            loginTitle: "参与者登陆",
+            loginPrompt: "请输入您的ID （A/B/C + number）",
+            loginError: "ID格式无效。必须是字母 A/B/C 加上数字（例如 A01）。",
+            btnLogin: "登陆",
+
+            // Survey Titles
+            surveyMainTitle: "第一部分 - 实验前背景调查",
+            secA: "A. 人口统计",
+            secB: "B. 使用社交媒体的情况",
+            secC: "C. 人工智能的使用和可信度认知",
+            secD: "D. 领域知识",
+
+            // Questions
+            q1_text: "Q1. 您的年龄？",
+            q1_opts: ["18 - 24", "25 - 34", "35 - 44", "45 - 54", "55 - 64", "65岁以上"],
+            
+            q2_text: "Q2. 您的性别？",
+            q2_opts: ["男人", "女人", "非二元/性别多样化", "宁愿不说"],
+
+            q3_text: "Q3. 以下哪项最能描述您的主要职业领域？",
+            q3_opts: ["医疗保健/医药", "科学/工程/技术", "教育学界", "商业/金融/法律", "艺术/媒体/人文", "其他"],
+
+            q4_text: "Q4. 平均来说，您每天花在社交媒体上的时间是多少？",
+            q4_opts: ["不到30分钟", "30分钟 - 1小时", "1 ~ 2小时", "2 ~ 4小时", "4小时以上"],
+
+            q5_text: "Q5. 当您在社交媒体上遇到信息时，您有多频繁地会主动尝试核实其准确性？",
+            q5_anchors: ["1 = 从不", "7 = 总是"],
+
+            q6_text: "Q6. 您如何描述您使用人工智能工具的总体经验（例如，ChatGPT、Claude、Gemini、Copilot）？",
+            q6_anchors: ["1 = 完全没有经验", "7 = 经验非常丰富"],
+
+            q7_text: "Q7. 迄今为止，您是否曾经使用人工智能工具专门检查一条信息或新闻是否准确？",
+            q7_opts: ["是的", "没有"],
+
+            q7a_text: "Q7a. 总的来说，我相信AI提供的信息的准确性。",
+            q7a_anchors: ["1 = 非常不同意", "7 = 非常同意"],
+
+            q8_text: "Q8. 您认为自己对健康和医学主题了解多少？",
+            q8_anchors: ["1 = 完全没有知识", "7 = 专家级知识"],
+
+            q9_text: "Q9. 您认为自己对科学与技术话题了解多少？",
+            q9_anchors: ["1 = 完全没有知识", "7 = 专家级知识"],
+
+            btnSubmit: "提交问卷",
+            
+            // Completed
+            completedTitle: "谢谢回答！",
+            completedText: "您的背景调查问卷已成功提交。现在您可以关闭此页面，并前往主实验链接继续您的测试。"
+          }
+        };
+
+        // Custom Component for formatting Markdown-like bold text
+        function MiniMarkdown({ text }) {
+          if (!text) return null;
+          const parts = text.split(/(\*\*.*?\*\*)/g);
+          return (
+            <span className="leading-relaxed">
+              {parts.map((part, index) => {
+                if (part.startsWith('**') && part.endsWith('**')) {
+                  return <strong key={index} className="font-bold text-[#0f1419]">{part.slice(2, -2)}</strong>;
+                }
+                return part;
+              })}
+            </span>
+          );
+        }
+
+        function App() {
+          const [lang, setLang] = useState('en'); 
+          const [activeStep, setActiveStep] = useState('consent'); // consent -> login -> survey -> completed
+          const [participantId, setParticipantId] = useState('');
+          const [isSubmitting, setIsSubmitting] = useState(false);
+
+          // ⚠️ 请在这里填入你的 SheetDB API 链接
+          const GOOGLE_SHEETS_WEBHOOK_URL = "https://sheetdb.io/api/v1/你的专属代码";
+
+          // Survey State
+          const [answers, setAnswers] = useState({
+            q1: null, q2: null, q3: null, q4: null, q5: null,
+            q6: null, q7: null, q7a: null, q8: null, q9: null
+          });
+
+          const t = TRANSLATIONS[lang];
+
+          const handleLogin = () => {
+            const id = participantId.trim().toUpperCase();
+            if (/^[A-C]\d+$/.test(id)) {
+              setActiveStep('survey');
+            } else {
+              alert(t.loginError);
+            }
+          };
+
+          const handleSelect = (questionKey, value) => {
+            setAnswers(prev => ({ ...prev, [questionKey]: value }));
+          };
+
+          const isSurveyComplete = () => {
+            return Object.values(answers).every(val => val !== null);
+          };
+
+          const handleSubmit = async () => {
+            setIsSubmitting(true);
+            const payload = {
+              participantId: participantId.trim().toUpperCase(),
+              q1_age: answers.q1,
+              q2_gender: answers.q2,
+              q3_occupation: answers.q3,
+              q4_socialMediaHours: answers.q4,
+              q5_verifyFrequency: answers.q5,
+              q6_aiExperience: answers.q6,
+              q7_usedAIToCheck: answers.q7,
+              q7a_trustAIAccuracy: answers.q7a,
+              q8_healthKnowledge: answers.q8,
+              q9_scienceKnowledge: answers.q9,
+              timestamp: new Date().toISOString()
+            };
+
+            if (GOOGLE_SHEETS_WEBHOOK_URL && GOOGLE_SHEETS_WEBHOOK_URL !== "") {
+              try {
+                await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
+                  method: 'POST',
+                  headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ data: [payload] })
+                });
+                console.log("Pre-survey data successfully synced to remote server.");
+              } catch (error) {
+                console.error("Failed to sync data remotely:", error);
+              }
+            }
+            setIsSubmitting(false);
+            setActiveStep('completed');
+          };
+
+          // Reusable UI components for questions
+          const renderRadioOptions = (questionKey, optionsTextArray) => (
+            <div className="flex flex-col gap-2 mt-3">
+              {optionsTextArray.map((opt, idx) => {
+                // Determine raw value (English fallback for consistency in DB if desired, but we'll save the exact localized string clicked for simplicity)
+                const val = opt; 
+                const isSelected = answers[questionKey] === val;
+                return (
+                  <label key={idx} className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                    isSelected ? 'bg-[#1D9BF0]/5 border-[#1D9BF0]' : 'bg-white border-[#EFF3F4] hover:bg-[#F7F9F9]'
+                  }`}>
+                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                      isSelected ? 'border-[#1D9BF0]' : 'border-[#CFD9DE]'
+                    }`}>
+                      {isSelected && <div className="w-2 h-2 rounded-full bg-[#1D9BF0]"></div>}
+                    </div>
+                    <span className={`text-sm ${isSelected ? 'text-[#0F1419] font-bold' : 'text-[#536471] font-medium'}`}>
+                      {opt}
+                    </span>
+                  </label>
+                )
+              })}
+            </div>
+          );
+
+          const renderLikertScale = (questionKey, anchorsTextArray) => (
+            <div className="mt-4 space-y-2">
+              <div className="grid grid-cols-7 gap-1.5 max-w-lg mx-auto">
+                {[1, 2, 3, 4, 5, 6, 7].map((num) => (
+                  <button
+                    key={num}
+                    onClick={() => handleSelect(questionKey, num)}
+                    className={`h-11 rounded-full text-xs font-bold border transition-all cursor-pointer shadow-sm ${
+                      answers[questionKey] === num ? 'bg-[#0f1419] text-white border-[#0f1419]' : 'bg-white text-[#0f1419] border-[#EFF3F4] hover:border-[#1D9BF0] hover:bg-[#1D9BF0]/5'
+                    }`}
+                  >{num}</button>
+                ))}
+              </div>
+              <div className="flex justify-between text-[11px] text-[#536471] font-semibold px-2 max-w-lg mx-auto">
+                <span>{anchorsTextArray[0]}</span>
+                <span>{anchorsTextArray[1]}</span>
+              </div>
+            </div>
+          );
+
+          return (
+            <div className="min-h-screen bg-[#F7F9F9] text-[#0F1419] flex flex-col font-sans selection:bg-[#1D9BF0]/20">
+              
+              <header className="bg-white border-b border-[#EFF3F4] px-6 py-4 flex justify-between items-center sticky top-0 z-30 shrink-0">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setLang(prev => prev === 'en' ? 'zh' : 'en')}
+                    className="px-3.5 py-1.5 text-xs font-bold text-[#536471] bg-[#F7F9F9] border border-[#EFF3F4] hover:bg-[#EFF3F4] rounded-full transition-all cursor-pointer flex items-center gap-1.5"
+                    title="Switch Language"
+                  >
+                    <IconGlobe className="w-3.5 h-3.5" />
+                    <span>{t.switchLang}</span>
+                  </button>
+                </div>
+              </header>
+
+              <main className="flex-1 flex flex-col items-center p-4 md:p-8 max-w-3xl w-full mx-auto">
+                
+                {activeStep === 'consent' && (
+                  <div className="w-full bg-white rounded-2xl shadow-sm border border-[#EFF3F4] p-8 md:p-12 space-y-6 animate-fade-in">
+                    <h1 className="text-2.5xl font-black text-[#0F1419] tracking-tight border-b border-[#EFF3F4] pb-4 mb-6">
+                      {t.consentTitle}
+                    </h1>
+                    
+                    <div className="space-y-4 text-[#0F1419] text-[15px] leading-relaxed" style={{ textWrap: 'pretty' }}>
+                      <p>{t.consentP1}</p>
+                      <MiniMarkdown text={t.consentP2} />
+                      <p>{t.consentP3}</p>
+                      <p className="whitespace-pre-line">{t.consentP4}</p>
+                      <div className="bg-[#1D9BF0]/5 p-4 rounded-xl border border-[#1D9BF0]/20 text-[#0F1419] mt-6">
+                        <p className="font-medium text-sm">{t.consentP5}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end pt-4 mt-8 border-t border-[#EFF3F4]">
+                      <button
+                        onClick={() => setActiveStep('login')}
+                        className="px-8 py-3.5 bg-[#0F1419] hover:bg-[#272C30] text-white font-bold rounded-full text-xs shadow-sm flex items-center gap-2 transition-all cursor-pointer"
+                      >
+                        {t.btnYes}
+                        <IconChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {activeStep === 'login' && (
+                  <div className="w-full bg-white rounded-2xl shadow-sm border border-[#EFF3F4] p-8 md:p-12 space-y-6 animate-fade-in text-center mt-12">
+                    <h1 className="text-2.5xl font-black text-[#0F1419] tracking-tight">{t.loginTitle}</h1>
+                    <div className="max-w-sm mx-auto space-y-4 py-4">
+                      <p className="text-[#536471] text-sm font-semibold mb-2">{t.loginPrompt}</p>
+                      <input
+                        type="text"
+                        className="w-full px-4 py-3 rounded-xl border border-[#EFF3F4] focus:outline-none focus:border-[#1D9BF0] text-center font-mono text-lg uppercase"
+                        value={participantId}
+                        onChange={e => setParticipantId(e.target.value)}
+                        placeholder="e.g. A01"
+                      />
+                    </div>
+                    <div className="flex justify-center pt-2">
+                      <button
+                        onClick={handleLogin}
+                        disabled={!participantId.trim()}
+                        className="px-10 py-3 bg-[#1D9BF0] hover:bg-[#1A8CD8] disabled:opacity-50 text-white font-bold rounded-full shadow-sm transition-all cursor-pointer"
+                      >
+                        {t.btnLogin}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {activeStep === 'survey' && (
+                  <div className="w-full bg-white rounded-2xl shadow-sm border border-[#EFF3F4] overflow-hidden animate-fade-in mb-12">
+                    <div className="bg-[#0F1419] p-6 text-white text-center">
+                      <h2 className="text-xl font-black">{t.surveyMainTitle}</h2>
+                    </div>
+
+                    <div className="p-6 md:p-10 space-y-10">
+                      
+                      {/* Section A */}
+                      <section className="space-y-6">
+                        <h3 className="font-bold text-[#1D9BF0] text-sm border-b border-[#EFF3F4] pb-2">{t.secA}</h3>
+                        
+                        <div className="bg-[#F7F9F9] p-5 rounded-2xl border border-[#EFF3F4]">
+                          <p className="font-bold text-sm text-[#0F1419]">{t.q1_text}</p>
+                          {renderRadioOptions('q1', t.q1_opts)}
+                        </div>
+
+                        <div className="bg-[#F7F9F9] p-5 rounded-2xl border border-[#EFF3F4]">
+                          <p className="font-bold text-sm text-[#0F1419]">{t.q2_text}</p>
+                          {renderRadioOptions('q2', t.q2_opts)}
+                        </div>
+
+                        <div className="bg-[#F7F9F9] p-5 rounded-2xl border border-[#EFF3F4]">
+                          <p className="font-bold text-sm text-[#0F1419]">{t.q3_text}</p>
+                          {renderRadioOptions('q3', t.q3_opts)}
+                        </div>
+                      </section>
+
+                      {/* Section B */}
+                      <section className="space-y-6">
+                        <h3 className="font-bold text-[#1D9BF0] text-sm border-b border-[#EFF3F4] pb-2">{t.secB}</h3>
+                        
+                        <div className="bg-[#F7F9F9] p-5 rounded-2xl border border-[#EFF3F4]">
+                          <p className="font-bold text-sm text-[#0F1419]">{t.q4_text}</p>
+                          {renderRadioOptions('q4', t.q4_opts)}
+                        </div>
+
+                        <div className="bg-[#F7F9F9] p-5 rounded-2xl border border-[#EFF3F4] text-center">
+                          <p className="font-bold text-sm text-[#0F1419]">{t.q5_text}</p>
+                          {renderLikertScale('q5', t.q5_anchors)}
+                        </div>
+                      </section>
+
+                      {/* Section C */}
+                      <section className="space-y-6">
+                        <h3 className="font-bold text-[#1D9BF0] text-sm border-b border-[#EFF3F4] pb-2">{t.secC}</h3>
+                        
+                        <div className="bg-[#F7F9F9] p-5 rounded-2xl border border-[#EFF3F4] text-center">
+                          <p className="font-bold text-sm text-[#0F1419]">{t.q6_text}</p>
+                          {renderLikertScale('q6', t.q6_anchors)}
+                        </div>
+
+                        <div className="bg-[#F7F9F9] p-5 rounded-2xl border border-[#EFF3F4]">
+                          <p className="font-bold text-sm text-[#0F1419]">{t.q7_text}</p>
+                          {renderRadioOptions('q7', t.q7_opts)}
+                        </div>
+
+                        <div className="bg-[#F7F9F9] p-5 rounded-2xl border border-[#EFF3F4] text-center">
+                          <p className="font-bold text-sm text-[#0F1419]">{t.q7a_text}</p>
+                          {renderLikertScale('q7a', t.q7a_anchors)}
+                        </div>
+                      </section>
+
+                      {/* Section D */}
+                      <section className="space-y-6">
+                        <h3 className="font-bold text-[#1D9BF0] text-sm border-b border-[#EFF3F4] pb-2">{t.secD}</h3>
+                        
+                        <div className="bg-[#F7F9F9] p-5 rounded-2xl border border-[#EFF3F4] text-center">
+                          <p className="font-bold text-sm text-[#0F1419]">{t.q8_text}</p>
+                          {renderLikertScale('q8', t.q8_anchors)}
+                        </div>
+
+                        <div className="bg-[#F7F9F9] p-5 rounded-2xl border border-[#EFF3F4] text-center">
+                          <p className="font-bold text-sm text-[#0F1419]">{t.q9_text}</p>
+                          {renderLikertScale('q9', t.q9_anchors)}
+                        </div>
+                      </section>
+
+                      <div className="flex justify-center pt-8 pb-4 border-t border-[#EFF3F4]">
+                        <button
+                          onClick={handleSubmit}
+                          disabled={!isSurveyComplete() || isSubmitting}
+                          className="px-10 py-3.5 bg-[#1D9BF0] hover:bg-[#1A8CD8] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-full text-sm shadow-sm flex items-center gap-2 transition-all cursor-pointer"
+                        >
+                          {isSubmitting ? (
+                            <IconLoader className="w-5 h-5 animate-spin" />
+                          ) : (
+                            <React.Fragment>
+                              {t.btnSubmit}
+                              <IconChevronRight className="w-4 h-4" />
+                            </React.Fragment>
+                          )}
+                        </button>
+                      </div>
+
+                    </div>
+                  </div>
+                )}
+
+                {activeStep === 'completed' && (
+                  <div className="w-full bg-white rounded-2xl shadow-sm border border-[#EFF3F4] p-8 md:p-12 space-y-6 text-center mt-12 animate-fade-in">
+                    <div className="w-16 h-16 bg-[#00BA7C]/10 text-[#00BA7C] rounded-full flex items-center justify-center mx-auto border border-[#00BA7C]/20">
+                      <IconCheckCircle className="w-8 h-8" />
+                    </div>
+                    <div className="space-y-2">
+                      <h2 className="text-2.5xl font-extrabold text-[#0F1419] tracking-tight">
+                        {t.completedTitle}
+                      </h2>
+                      <p className="text-[#536471] text-sm leading-relaxed max-w-md mx-auto">
+                        {t.completedText}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+              </main>
+            </div>
+          );
+        }
+
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+    </script>
+</body>
+</html>
