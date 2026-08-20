@@ -195,7 +195,7 @@
           const [isSubmitting, setIsSubmitting] = useState(false);
 
           // ⚠️ 请在这里填入你的 SheetDB API 链接
-          const GOOGLE_SHEETS_WEBHOOK_URL = "https://sheetdb.io/api/v1/你的专属代码";
+          const GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbz20NUOg8TUCOOgkWM5h-8Flx3G4iOHpdi-Vjvd2ynImT5ALlHZdmmiuVpfUQDXfxprFQ/exec";
 
           // Survey State
           const [answers, setAnswers] = useState({
@@ -247,7 +247,10 @@
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                   },
-                  body: JSON.stringify({ data: [payload] })
+                  body: JSON.stringify({
+  source: "pre_survey",
+  data: [payload]
+})
                 });
                 console.log("Pre-survey data successfully synced to remote server.");
               } catch (error) {
