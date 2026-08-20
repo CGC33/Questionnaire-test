@@ -242,15 +242,16 @@
             if (GOOGLE_SHEETS_WEBHOOK_URL && GOOGLE_SHEETS_WEBHOOK_URL !== "") {
               try {
                 await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
-                  method: 'POST',
-                  headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify({
-    source: "pre_survey",
-    ...payload
-})
+    method: "POST",
+    mode: "no-cors",
+    headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+    },
+    body: JSON.stringify({
+        source: "pre_survey",
+        ...payload
+    })
+});
                 });
                 console.log("Pre-survey data successfully synced to remote server.");
               } catch (error) {
